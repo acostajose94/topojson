@@ -17,9 +17,10 @@ Aplicación Android que lee y narra automáticamente los pagos recibidos a trav�
 ## 🚀 Instalación
 
 ### Requisitos
-- Android 5.0 (API 21) o superior
-- Aplicación de Yape instalada
-- Permisos de acceso a notificaciones
+- **Android**: 5.0 (API 21) o superior
+- **Java**: JDK 17 o JDK 21
+- **Gradle**: 8.9 (incluido en el proyecto)
+- **Aplicación de Yape**: Debe estar instalada en el dispositivo
 
 ### Pasos de instalación
 
@@ -35,6 +36,8 @@ Aplicación Android que lee y narra automáticamente los pagos recibidos a trav�
    ```
 
    O copiar el APK generado en `app/build/outputs/apk/debug/app-debug.apk` a tu dispositivo Android.
+
+**⚠️ Problemas de compilación?** Consulta la [Guía de Compilación](BUILD_GUIDE.md) para solucionar errores comunes.
 
 ## 📖 Cómo usar
 
