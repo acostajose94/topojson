@@ -1,13 +1,20 @@
 package com.yape.notificationreader;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+
+import androidx.core.app.NotificationCompat;
 
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -24,6 +31,10 @@ public class YapeNotificationListener extends NotificationListenerService {
     private static final String PREF_READ_NAME = "read_name";
     private static final String PREF_ENABLED = "service_enabled";
 
+    // Constantes para el servicio foreground
+    private static final String CHANNEL_ID = "yape_notification_listener_channel";
+    private static final int NOTIFICATION_ID = 1;
+
     private TextToSpeech tts;
     private SharedPreferences prefs;
 
@@ -31,6 +42,12 @@ public class YapeNotificationListener extends NotificationListenerService {
     public void onCreate() {
         super.onCreate();
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
+        // Crear canal de notificación para Android 8.0+
+        createNotificationChannel();
+
+        // Iniciar servicio en primer plano para mantenerlo activo
+        startForegroundService();
 
         // Inicializar Text-to-Speech
         tts = new TextToSpeech(this, status -> {
@@ -50,6 +67,59 @@ public class YapeNotificationListener extends NotificationListenerService {
         });
 
         Log.d(TAG, "Servicio de notificaciones iniciado");
+    }
+
+    /**
+     * Crea el canal de notificación para Android 8.0 (Oreo) y superior
+     */
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Servicio de Yape Reader";
+            String description = "Mantiene el servicio activo para leer notificaciones de Yape";
+            int importance = NotificationManager.IMPORTANCE_LOW; // Baja para no molestar al usuario
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            channel.setShowBadge(false);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+                Log.d(TAG, "Canal de notificación creado");
+            }
+        }
+    }
+
+    /**
+     * Inicia el servicio en primer plano con una notificación persistente
+     * Esto asegura que el sistema no detenga el servicio
+     */
+    private void startForegroundService() {
+        // Intent para abrir la app cuando se toca la notificación
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                notificationIntent,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                        ? PendingIntent.FLAG_IMMUTABLE
+                        : PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        // Crear la notificación persistente
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Yape Reader activo")
+                .setContentText("Escuchando notificaciones de Yape")
+                .setSmallIcon(android.R.drawable.ic_menu_info_details)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true) // No se puede descartar
+                .setShowWhen(false);
+
+        Notification notification = builder.build();
+
+        // Iniciar servicio en primer plano
+        startForeground(NOTIFICATION_ID, notification);
+        Log.d(TAG, "Servicio iniciado en primer plano");
     }
 
     @Override
@@ -235,7 +305,24 @@ public class YapeNotificationListener extends NotificationListenerService {
             tts.stop();
             tts.shutdown();
         }
+
+        // Detener servicio foreground
+        stopForeground(true);
+
         super.onDestroy();
         Log.d(TAG, "Servicio de notificaciones detenido");
+    }
+
+    @Override
+    public void onListenerConnected() {
+        super.onListenerConnected();
+        Log.d(TAG, "Listener conectado al sistema de notificaciones");
+    }
+
+    @Override
+    public void onListenerDisconnected() {
+        super.onListenerDisconnected();
+        Log.d(TAG, "Listener desconectado - intentando reconectar");
+        // El sistema intentará reconectar automáticamente
     }
 }

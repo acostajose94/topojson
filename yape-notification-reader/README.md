@@ -7,6 +7,10 @@ Aplicación Android que lee y narra automáticamente los pagos recibidos a trav�
 - ✅ **Lectura automática de notificaciones de Yape**: Detecta cuando recibes un pago
 - 🔊 **Narración por voz**: Usa Text-to-Speech para narrar el monto recibido
 - 👤 **Opción de narrar el nombre**: Configurable para incluir el nombre del remitente
+- 🔄 **Servicio persistente en segundo plano**: Se mantiene activo incluso cuando cierras la app
+- 🔋 **Optimización de batería configurable**: Opción para evitar que el sistema detenga el servicio
+- 📲 **Notificación persistente**: Muestra que el servicio está activo (se puede minimizar)
+- 🔁 **Reinicio automático**: Se reactiva después de reiniciar el dispositivo
 - ⚙️ **Configuración simple**: Interfaz intuitiva para personalizar la experiencia
 - 🔒 **Privacidad**: Solo procesa notificaciones de Yape, ninguna información se envía a servidores externos
 
@@ -44,7 +48,14 @@ Aplicación Android que lee y narra automáticamente los pagos recibidos a trav�
    - Busca "Yape Notification Reader" en la lista
    - Activa el permiso de acceso a notificaciones
 
-3. **Configurar preferencias**:
+3. **Desactivar optimización de batería** (Recomendado):
+   - Toca "Desactivar Optimización de Batería" si aparece el botón
+   - Esto permite que el servicio se mantenga activo en segundo plano
+   - En la pantalla de configuración, selecciona "Todas las apps"
+   - Busca "Yape Notification Reader" y selecciona "No optimizar"
+   - Esto evita que Android detenga el servicio para ahorrar batería
+
+4. **Configurar preferencias**:
    - **Activar servicio**: Habilita/deshabilita la narración de pagos
    - **Leer nombre del remitente**: Activa si deseas que se narre el nombre de quien te envió el pago
 
@@ -55,6 +66,13 @@ Una vez configurada, la aplicación funcionará automáticamente:
 - Cuando recibas un pago por Yape, escucharás una narración
 - **Sin nombre**: "Recibiste 50 soles"
 - **Con nombre**: "Recibiste 50 soles de Juan Pérez"
+
+**Servicio en segundo plano:**
+- Verás una notificación persistente que dice "Yape Reader activo"
+- Esta notificación indica que el servicio está funcionando
+- Puedes minimizar la notificación deslizándola hacia un lado
+- El servicio continuará activo incluso si cierras la app
+- Se reiniciará automáticamente si reinicias el dispositivo
 
 ## ⚙️ Configuración
 
@@ -81,7 +99,8 @@ yape-notification-reader/
 │   │   └── main/
 │   │       ├── java/com/yape/notificationreader/
 │   │       │   ├── MainActivity.java              # Actividad principal
-│   │       │   └── YapeNotificationListener.java  # Servicio de notificaciones
+│   │       │   ├── YapeNotificationListener.java  # Servicio de notificaciones (foreground)
+│   │       │   └── BootReceiver.java              # Reinicio automático después de reboot
 │   │       ├── res/
 │   │       │   ├── layout/
 │   │       │   │   └── activity_main.xml          # Layout principal
@@ -121,6 +140,15 @@ Utiliza `TextToSpeech` de Android:
 - Genera el mensaje según la configuración
 - Narra usando la cola de TTS
 
+### Servicio en segundo plano
+
+Para mantener el servicio activo permanentemente:
+- **Foreground Service**: El servicio se ejecuta en primer plano con una notificación persistente
+- **Canal de notificación**: Usa importancia LOW para no molestar al usuario
+- **Boot Receiver**: Se reinicia automáticamente cuando el dispositivo se enciende
+- **Exención de batería**: Opción para evitar que el sistema detenga el servicio
+- **Reconexión automática**: Si el sistema desconecta el listener, intenta reconectar automáticamente
+
 ## 🛡️ Privacidad y seguridad
 
 - ✅ La aplicación **NO** envía datos a internet
@@ -156,6 +184,23 @@ Utiliza `TextToSpeech` de Android:
 1. Verifica que la opción "Leer nombre del remitente" esté activada
 2. Algunas notificaciones de Yape pueden no incluir el nombre
 3. El formato de las notificaciones puede variar según la versión de Yape
+
+### El servicio se detiene después de un tiempo
+
+1. **Desactivar optimización de batería**:
+   - Abre la app y toca "Desactivar Optimización de Batería"
+   - O ve a Configuración > Batería > Optimización de batería
+   - Busca "Yape Notification Reader" y selecciona "No optimizar"
+
+2. **Verificar modo de ahorro de energía**:
+   - Algunos fabricantes (Xiaomi, Huawei, etc.) tienen modos agresivos de ahorro
+   - Busca "App startup" o "Inicio automático" en configuración
+   - Permite que Yape Notification Reader se inicie automáticamente
+
+3. **Verificar la notificación persistente**:
+   - Debe aparecer una notificación "Yape Reader activo"
+   - Si no aparece, el servicio no está en foreground
+   - Intenta desinstalar y reinstalar la app
 
 ## 📝 Notas importantes
 

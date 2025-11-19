@@ -4,7 +4,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.View;
@@ -29,7 +32,9 @@ public class MainActivity extends AppCompatActivity {
     private Switch switchReadName;
     private Switch switchServiceEnabled;
     private TextView tvStatus;
+    private TextView tvBatteryStatus;
     private Button btnOpenSettings;
+    private Button btnBatteryOptimization;
     private SharedPreferences prefs;
 
     @Override
@@ -57,7 +62,9 @@ public class MainActivity extends AppCompatActivity {
         switchReadName = findViewById(R.id.switch_read_name);
         switchServiceEnabled = findViewById(R.id.switch_service_enabled);
         tvStatus = findViewById(R.id.tv_status);
+        tvBatteryStatus = findViewById(R.id.tv_battery_status);
         btnOpenSettings = findViewById(R.id.btn_open_settings);
+        btnBatteryOptimization = findViewById(R.id.btn_battery_optimization);
 
         // Cargar preferencias guardadas
         boolean readName = prefs.getBoolean(PREF_READ_NAME, false);
@@ -102,6 +109,14 @@ public class MainActivity extends AppCompatActivity {
                 openNotificationListenerSettings();
             }
         });
+
+        // Botón para desactivar optimización de batería
+        btnBatteryOptimization.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestBatteryOptimizationExemption();
+            }
+        });
     }
 
     /**
@@ -119,6 +134,66 @@ public class MainActivity extends AppCompatActivity {
             tvStatus.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
             btnOpenSettings.setVisibility(View.VISIBLE);
             showPermissionDialog();
+        }
+
+        // Verificar optimización de batería
+        updateBatteryOptimizationStatus();
+    }
+
+    /**
+     * Actualiza el estado de la optimización de batería en la UI
+     */
+    private void updateBatteryOptimizationStatus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            boolean isIgnoringBatteryOptimizations = pm.isIgnoringBatteryOptimizations(getPackageName());
+
+            if (tvBatteryStatus != null) {
+                if (isIgnoringBatteryOptimizations) {
+                    tvBatteryStatus.setText("✓ Optimización de batería desactivada");
+                    tvBatteryStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                    btnBatteryOptimization.setVisibility(View.GONE);
+                } else {
+                    tvBatteryStatus.setText("⚠ Optimización de batería activa (recomendado desactivar)");
+                    tvBatteryStatus.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+                    btnBatteryOptimization.setVisibility(View.VISIBLE);
+                }
+            }
+        } else {
+            // Android < 6.0 no tiene optimización de batería
+            if (tvBatteryStatus != null) {
+                tvBatteryStatus.setVisibility(View.GONE);
+            }
+            if (btnBatteryOptimization != null) {
+                btnBatteryOptimization.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    /**
+     * Solicita exención de optimización de batería
+     */
+    private void requestBatteryOptimizationExemption() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Optimización de batería")
+                    .setMessage("Para mantener el servicio activo en segundo plano, se recomienda " +
+                            "desactivar la optimización de batería.\n\n" +
+                            "En la siguiente pantalla, selecciona 'Todas las apps' y busca " +
+                            "'Yape Notification Reader', luego selecciona 'No optimizar'.")
+                    .setPositiveButton("Continuar", (dialog, which) -> {
+                        Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        try {
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            // Si falla, abrir configuración general de batería
+                            Intent settingsIntent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                            startActivity(settingsIntent);
+                        }
+                    })
+                    .setNegativeButton("Cancelar", null)
+                    .show();
         }
     }
 
