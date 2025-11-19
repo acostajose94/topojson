@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Nombre de la aplicación -->
+    <string name="app_name">Yape Notification Reader</string>
+
+    <!-- Descripción -->
+    <string name="app_description">Lee y narra los pagos recibidos por Yape</string>
+
+    <!-- Estado -->
+    <string name="status_title">Estado del Servicio</string>
+    <string name="checking_status">Verificando estado…</string>
+    <string name="permission_granted">✓ Permiso de notificaciones concedido</string>
+    <string name="permission_not_granted">✗ Permiso de notificaciones no concedido</string>
+    <string name="open_settings">Abrir Configuración de Notificaciones</string>
+
+    <!-- Configuración -->
+    <string name="settings_title">Configuración</string>
+    <string name="enable_service">Activar servicio</string>
+    <string name="enable_service_description">Habilitar o deshabilitar la narración de pagos</string>
+    <string name="read_name">Leer nombre del remitente</string>
+    <string name="read_name_description">Incluir el nombre de quien envió el pago en la narración</string>
+
+    <!-- Instrucciones -->
+    <string name="instructions_title">Cómo usar</string>
+    <string name="instructions">
+1. Toca el botón \"Abrir Configuración\" si aparece
+2. Busca y selecciona \"Yape Notification Reader\" en la lista
+3. Activa el permiso de acceso a notificaciones
+4. Vuelve a esta aplicación
+5. Configura si deseas que se lea el nombre del remitente
+6. ¡Listo! Ahora recibirás narración de tus pagos de Yape
+
+Nota: La aplicación solo funciona cuando recibes notificaciones de pagos en Yape.
+    </string>
+
+    <!-- Diálogos -->
+    <string name="permission_dialog_title">Permiso necesario</string>
+    <string name="permission_dialog_message">Esta aplicación necesita permiso para leer las notificaciones de Yape.\n\nPor favor, habilita el acceso a notificaciones para \'Yape Notification Reader\' en la siguiente pantalla.</string>
+    <string name="open">Abrir configuración</string>
+    <string name="cancel">Cancelar</string>
+
+    <!-- Mensajes -->
+    <string name="service_enabled_toast">Servicio habilitado</string>
+    <string name="service_disabled_toast">Servicio deshabilitado</string>
+    <string name="name_enabled_toast">Se narrará el nombre y el monto</string>
+    <string name="name_disabled_toast">Solo se narrará el monto</string>
+</resources>
